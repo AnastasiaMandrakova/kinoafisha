@@ -1,1 +1,1 @@
-conflictFile2
+end version of this file
