@@ -86,7 +86,7 @@ public class UsersController {
         UsersModel usersModel = usersRepository.findUsersModelByLogin(userName);
         Integer userId = usersModel.getUserId();
         UserProfileDto profile = usersService.getProfile(usersModel);
-        List<RatingModel> ratingModelsWithHighRate = ratingRepository.findRatingModelsByRatingAndUserId(5,userId);//Кладу в список все рейтинги, у которых 5 (тут же лежат айди фильмов, которые имеют рейт 5)
+        List<RatingModel> ratingModelsWithHighRate = ratingRepository.findRatingModelsByRatingAndUserId(5,userId);
         if(ratingModelsWithHighRate.size()!=0)
         {
             List<FilmsShortDto> fsd = new ArrayList<>();
@@ -118,7 +118,7 @@ public class UsersController {
         UsersModel usersModel = usersRepository.findUsersModelByAuthentificated(1);
         Integer userId = usersModel.getUserId();
         UserProfileDto profile = usersService.getProfile(usersModel);
-        List<RatingModel> ratingModelsWithHighRate = ratingRepository.findRatingModelsByRatingAndUserId(5,userId);//Кладу в список все рейтинги, у которых 5 (тут же лежат айди фильмов, которые имеют рейт 5)
+        List<RatingModel> ratingModelsWithHighRate = ratingRepository.findRatingModelsByRatingAndUserId(5,userId);
         if(ratingModelsWithHighRate.size()!=0)
         {
             List<FilmsShortDto> fsd = new ArrayList<>();
@@ -140,7 +140,7 @@ public class UsersController {
             model.addAttribute("films", filmsShortDtos);
         }
         model.addAttribute("userLogin", usersModel.getLogin());
-        model.addAttribute("profileRequest", profile);//Вот тут надо доделать следующую штуку - надо выводить сюда профильДто
+        model.addAttribute("profileRequest", profile);
         return "profile_page";
     }
 
@@ -153,7 +153,7 @@ public class UsersController {
 
 
     @PostMapping("/updateProfile")
-    public String updateProfile(@ModelAttribute UsersModel usersModel) //Возможно логин не может быть равен нулю, нужно подумать как енто сделать
+    public String updateProfile(@ModelAttribute UsersModel usersModel)
     {
         System.out.println("update_profile request: " + usersModel);
         UsersModel userModelFromDb = usersRepository.findUsersModelByAuthentificated(1);
@@ -175,13 +175,13 @@ public class UsersController {
         {
             usersModel.setBirthDate(userFromDbBirthDate);
         }
-        //Мне нужно пересохранить в базу уже существующего юзера, поэтому небольшой финт ушами
+
         userModelFromDb.setLogin(usersModel.getLogin());
         userModelFromDb.setPreferences(usersModel.getPreferences());
         userModelFromDb.setBirthDate(usersModel.getBirthDate());
         usersRepository.save(userModelFromDb);
 
-        //мы сохранили нашего юзера, теперь надо отрисовать и вернуть страничку профиля
+
 
         return "profile_update_success";
 
@@ -209,10 +209,10 @@ public class UsersController {
     @PostMapping("/addComment")
     public String addCommentToFilm(@ModelAttribute CommentsModel commentsModel, Model model) //добавление коментария к фильму
     {
-        System.out.println("comment request: " + commentsModel);//Получилось! Я могу получить коммент
+        System.out.println("comment request: " + commentsModel);
         UsersModel authenticated = usersRepository.findUsersModelByAuthentificated(1);
         String userName = authenticated.getLogin();
-       // String userImage = authenticated.getImage();//У юзеров пока нету аватарок, мб и не будет
+       // String userImage = authenticated.getImage();
         commentsModel.setName(userName);
         commentsRepository.save(commentsModel);
 
@@ -221,14 +221,14 @@ public class UsersController {
 
         model.addAttribute("comment", commentsModel);
 
-        //Теперь здесь мне надо сформировать страничку film_page заново. Имя фильма я уже знаю
+
         FilmFullDto filmFullDto = filmsService.findFilmByNameDto(commentsModel.getFilmName());
 
-        //занимаюсь выводом комментариев
-        List<CommentsModel> commentsModelList = commentsRepository.findCommentsModelByFilmName(commentsModel.getFilmName());//Тут у меня лист комментов к фильму
+
+        List<CommentsModel> commentsModelList = commentsRepository.findCommentsModelByFilmName(commentsModel.getFilmName());
         if(commentsModelList.size()==0)
         {
-            String admComment = "Комментариев к фильму пока нет, будьте первым, кто оставит комментарий"; //Если эта хуйня останется после осталвения комментариев, ее надо будет вырезать
+            String admComment = "Комментариев к фильму пока нет, будьте первым, кто оставит комментарий";
             model.addAttribute("admComment",admComment);
         }else{
             List<CommentsShortDto> commentsShortDtoList = new ArrayList<>();
@@ -237,13 +237,12 @@ public class UsersController {
                 CommentsShortDto one_shortComment = commentsMapper.toCommentsShortDto(one_comment);
                 commentsShortDtoList.add(one_shortComment);
             }
-            //На выбор два варианта - просто добавить коммент к фильмДто, но тогда не ясно как выводить ник юзера оставившего коммент
-            //Второй вариант - создать атрибут с комментами, и выводить его, тогда проблема отпадет
+
             model.addAttribute("comments",commentsShortDtoList);
-            //Теперь надо сходить в фильм пейдж, и вывести в цикле атрибут комментс
+
         }
 
-        //Занимаюсь рейтингом
+        //рейтинг
         FilmModel filmModelForId = filmRepository.findFilmModelByName(commentsModel.getFilmName());
         Integer filmId = filmModelForId.getFilmId();
         List<RatingModel> ratingModelList = ratingRepository.findRatingModelsByFilmId(filmId);
@@ -265,14 +264,14 @@ public class UsersController {
             filmFullDto.setRating(0);
         }
 
-        model.addAttribute("film", filmFullDto); // перенес
+        model.addAttribute("film", filmFullDto);
 
-        List<Integer> ratingScale = new ArrayList<>(); //Создаю свою шкалу рейтинга
+        List<Integer> ratingScale = new ArrayList<>();
         for(int i=0; i<6; i++)
         {
-            ratingScale.add(i);//заполняю шкалу рейтинга
+            ratingScale.add(i);
         }
-        model.addAttribute("ratingScale", ratingScale);//добавляю атрибут шкалы рейтинга
+        model.addAttribute("ratingScale", ratingScale);
 
         // model.addAttribute("film", filmFullDto);
         return "film_page";
@@ -298,9 +297,9 @@ public class UsersController {
                  //   authenticated.setPreferences("нет предпочтений");
                 //    authenticated.setBirthDate("не задана");
 
-                    usersRepository.save(authenticated); // выше задаю значения для профиля, и обновляю сущность в таблице
-                    model.addAttribute("userLogin", authenticated.getLogin());//Это добавление атрибута было по дефоту
-                    List<FilmsShortDto> filmsShortDtos = filmsService.getAllFilms();// Просто собираю страницу со всеми фильмами
+                    usersRepository.save(authenticated);
+                    model.addAttribute("userLogin", authenticated.getLogin());
+                    List<FilmsShortDto> filmsShortDtos = filmsService.getAllFilms();
                     List<String> filmsNamesList = new ArrayList<>();
                     for(FilmsShortDto filmsShortDto : filmsShortDtos)
                     {
@@ -323,7 +322,7 @@ public class UsersController {
 
 
 
-    @PostMapping("/logout") // если не заработает, надо бы заменить маппинг на login
+    @PostMapping("/logout")
     public String logout(@ModelAttribute UsersModel usersModel, Model model)
     {
 
@@ -335,7 +334,7 @@ public class UsersController {
             //////////////////////////////////
             authenticated.setAuthentificated(0);
 
-            usersRepository.save(authenticated); // выше задаю значения для профиля, и обновляю сущность в таблице
+            usersRepository.save(authenticated);
             ////////////////////////////////////
             model.addAttribute("userLogin", authenticated.getLogin());
             return "login_page";
@@ -395,11 +394,11 @@ public class UsersController {
         String name = filmModel.getName();
         FilmFullDto filmFullDto = filmsService.findFilmByNameDto(name);
 
-        //занимаюсь выводом комментариев
-        List<CommentsModel> commentsModelList = commentsRepository.findCommentsModelByFilmName(name);//Тут у меня лист комментов к фильму
+
+        List<CommentsModel> commentsModelList = commentsRepository.findCommentsModelByFilmName(name);
         if(commentsModelList.size()==0)
         {
-            String admComment = "Комментариев к фильму пока нет, будьте первым, кто оставит комментарий"; //Если эта хуйня останется после осталвения комментариев, ее надо будет вырезать
+            String admComment = "Комментариев к фильму пока нет, будьте первым, кто оставит комментарий";
             model.addAttribute("admComment",admComment);
         }else{
             List<CommentsShortDto> commentsShortDtoList = new ArrayList<>();
@@ -408,13 +407,12 @@ public class UsersController {
                 CommentsShortDto one_shortComment = commentsMapper.toCommentsShortDto(one_comment);
                 commentsShortDtoList.add(one_shortComment);
             }
-            //На выбор два варианта - просто добавить коммент к фильмДто, но тогда не ясно как выводить ник юзера оставившего коммент
-            //Второй вариант - создать атрибут с комментами, и выводить его, тогда проблема отпадет
+
             model.addAttribute("comments",commentsShortDtoList);
-            //Теперь надо сходить в фильм пейдж, и вывести в цикле атрибут комментс
+
         }
 
-        //Занимаюсь рейтингом
+
         FilmModel filmModelForId = filmRepository.findFilmModelByName(name);
         Integer filmId = filmModelForId.getFilmId();
         List<RatingModel> ratingModelList = ratingRepository.findRatingModelsByFilmId(filmId);
@@ -437,14 +435,14 @@ public class UsersController {
             filmFullDto.setRating(0);
         }
 
-        model.addAttribute("film", filmFullDto); // перенес
+        model.addAttribute("film", filmFullDto);
 
-        List<Integer> ratingScale = new ArrayList<>(); //Создаю свою шкалу рейтинга
+        List<Integer> ratingScale = new ArrayList<>();
         for(int i=0; i<6; i++)
         {
-            ratingScale.add(i);//заполняю шкалу рейтинга
+            ratingScale.add(i);
         }
-        model.addAttribute("ratingScale", ratingScale);//добавляю атрибут шкалы рейтинга
+        model.addAttribute("ratingScale", ratingScale);
 
         // model.addAttribute("film", filmFullDto);
         return "film_page";
@@ -494,11 +492,11 @@ public class UsersController {
     public String getFilmByFilmNameR0(@ModelAttribute FilmModel filmModel,  Model model){// получение фильма по имени
         String name = filmModel.getName();
         FilmFullDto filmFullDto = filmsService.findFilmByNameDto(name);
-        //Занимаюсь выводом комментов
-        List<CommentsModel> commentsModelList = commentsRepository.findCommentsModelByFilmName(name);//Тут у меня лист комментов к фильму
+
+        List<CommentsModel> commentsModelList = commentsRepository.findCommentsModelByFilmName(name);
         if(commentsModelList.size()==0)
         {
-            String admComment = "Комментариев к фильму пока нет, будьте первым, кто оставит комментарий"; //Если эта хуйня останется после осталвения комментариев, ее надо будет вырезать
+            String admComment = "Комментариев к фильму пока нет, будьте первым, кто оставит комментарий";
             model.addAttribute("admComment",admComment);
         }else{
             List<CommentsShortDto> commentsShortDtoList = new ArrayList<>();
@@ -507,13 +505,12 @@ public class UsersController {
                 CommentsShortDto one_shortComment = commentsMapper.toCommentsShortDto(one_comment);
                 commentsShortDtoList.add(one_shortComment);
             }
-            //На выбор два варианта - просто добавить коммент к фильмДто, но тогда не ясно как выводить ник юзера оставившего коммент
-            //Второй вариант - создать атрибут с комментами, и выводить его, тогда проблема отпадет
+
             model.addAttribute("comments",commentsShortDtoList);
-            //Теперь надо сходить в фильм пейдж, и вывести в цикле атрибут комментс
+
         }
 
-        //Занимаюсь рейтингом
+
         FilmModel filmModelForId1 = filmRepository.findFilmModelByName(name);
         Integer filmId1 = filmModelForId1.getFilmId();
         List<RatingModel> ratingModelList = ratingRepository.findRatingModelsByFilmId(filmId1);
@@ -535,25 +532,25 @@ public class UsersController {
             filmFullDto.setRating(0);
         }
 
-        model.addAttribute("film", filmFullDto); // перенес
+        model.addAttribute("film", filmFullDto);
 
-        List<Integer> ratingScale = new ArrayList<>(); //Создаю свою шкалу рейтинга
+        List<Integer> ratingScale = new ArrayList<>();
         for(int i=0; i<6; i++)
         {
-            ratingScale.add(i);//заполняю шкалу рейтинга
+            ratingScale.add(i);
         }
-        model.addAttribute("ratingScale", ratingScale);//добавляю атрибут шкалы рейтинга
+        model.addAttribute("ratingScale", ratingScale);
 
-        Integer myRating = 0;// Я добавил в параметр рейтинг модель, не знаю, смог ли я здесь его получить или нет
+        Integer myRating = 0;
         FilmModel filmModelForId = filmsService.findFilmByNameModel(name);
         Integer filmId = filmModelForId.getFilmId();
         UsersModel usersModel = usersRepository.findUsersModelByAuthentificated(1);
         Integer userId = usersModel.getUserId();
         RatingModel ratingModel = ratingRepository.findRatingModelByFilmIdAndUserId(filmId, userId);
         if(ratingModel != null){
-            RatingDto ratingDto = ratingService.giveRatingToFilm(ratingModel, myRating); //Если рейтинг уже существует, то нужно пойти и изменить оценку
+            RatingDto ratingDto = ratingService.giveRatingToFilm(ratingModel, myRating);
         }else{
-            //Если юзер еще не ставил оценку данному фильму, то надо ПОЛУЧИТЬ ОТ ФРОНТА оценку, затем установить ее
+
             RatingModel newRatingModel = new RatingModel();
             newRatingModel.setFilmId(filmId);
             newRatingModel.setUserId(userId);
@@ -572,10 +569,10 @@ public class UsersController {
         String name = filmModel.getName();
         FilmFullDto filmFullDto = filmsService.findFilmByNameDto(name);
         //Занимаюсь выводом комментов
-        List<CommentsModel> commentsModelList = commentsRepository.findCommentsModelByFilmName(name);//Тут у меня лист комментов к фильму
+        List<CommentsModel> commentsModelList = commentsRepository.findCommentsModelByFilmName(name);
         if(commentsModelList.size()==0)
         {
-            String admComment = "Комментариев к фильму пока нет, будьте первым, кто оставит комментарий"; //Если эта хуйня останется после осталвения комментариев, ее надо будет вырезать
+            String admComment = "Комментариев к фильму пока нет, будьте первым, кто оставит комментарий";
             model.addAttribute("admComment",admComment);
         }else{
             List<CommentsShortDto> commentsShortDtoList = new ArrayList<>();
@@ -584,13 +581,12 @@ public class UsersController {
                 CommentsShortDto one_shortComment = commentsMapper.toCommentsShortDto(one_comment);
                 commentsShortDtoList.add(one_shortComment);
             }
-            //На выбор два варианта - просто добавить коммент к фильмДто, но тогда не ясно как выводить ник юзера оставившего коммент
-            //Второй вариант - создать атрибут с комментами, и выводить его, тогда проблема отпадет
+
             model.addAttribute("comments",commentsShortDtoList);
-            //Теперь надо сходить в фильм пейдж, и вывести в цикле атрибут комментс
+
         }
 
-        //Занимаюсь рейтингом
+
 
         FilmModel filmModelForId1 = filmRepository.findFilmModelByName(name);
         Integer filmId1 = filmModelForId1.getFilmId();
@@ -614,25 +610,25 @@ public class UsersController {
         }
 
 
-        model.addAttribute("film", filmFullDto); // перенес
+        model.addAttribute("film", filmFullDto);
 
-        List<Integer> ratingScale = new ArrayList<>(); //Создаю свою шкалу рейтинга
+        List<Integer> ratingScale = new ArrayList<>();
         for(int i=0; i<6; i++)
         {
-            ratingScale.add(i);//заполняю шкалу рейтинга
+            ratingScale.add(i);
         }
-        model.addAttribute("ratingScale", ratingScale);//добавляю атрибут шкалы рейтинга
+        model.addAttribute("ratingScale", ratingScale);
 
-        Integer myRating = 1;// Я добавил в параметр рейтинг модель, не знаю, смог ли я здесь его получить или нет
+        Integer myRating = 1;
         FilmModel filmModelForId = filmsService.findFilmByNameModel(name);
         Integer filmId = filmModelForId.getFilmId();
         UsersModel usersModel = usersRepository.findUsersModelByAuthentificated(1);
         Integer userId = usersModel.getUserId();
         RatingModel ratingModel = ratingRepository.findRatingModelByFilmIdAndUserId(filmId, userId);
         if(ratingModel != null){
-            RatingDto ratingDto = ratingService.giveRatingToFilm(ratingModel, myRating); //Если рейтинг уже существует, то нужно пойти и изменить оценку
+            RatingDto ratingDto = ratingService.giveRatingToFilm(ratingModel, myRating);
         }else{
-            //Если юзер еще не ставил оценку данному фильму, то надо ПОЛУЧИТЬ ОТ ФРОНТА оценку, затем установить ее
+
             RatingModel newRatingModel = new RatingModel();
             newRatingModel.setFilmId(filmId);
             newRatingModel.setUserId(userId);
@@ -650,10 +646,10 @@ public class UsersController {
         String name = filmModel.getName();
         FilmFullDto filmFullDto = filmsService.findFilmByNameDto(name);
         //Занимаюсь выводом комментов
-        List<CommentsModel> commentsModelList = commentsRepository.findCommentsModelByFilmName(name);//Тут у меня лист комментов к фильму
+        List<CommentsModel> commentsModelList = commentsRepository.findCommentsModelByFilmName(name);
         if(commentsModelList.size()==0)
         {
-            String admComment = "Комментариев к фильму пока нет, будьте первым, кто оставит комментарий"; //Если эта хуйня останется после осталвения комментариев, ее надо будет вырезать
+            String admComment = "Комментариев к фильму пока нет, будьте первым, кто оставит комментарий";
             model.addAttribute("admComment",admComment);
         }else{
             List<CommentsShortDto> commentsShortDtoList = new ArrayList<>();
@@ -662,13 +658,12 @@ public class UsersController {
                 CommentsShortDto one_shortComment = commentsMapper.toCommentsShortDto(one_comment);
                 commentsShortDtoList.add(one_shortComment);
             }
-            //На выбор два варианта - просто добавить коммент к фильмДто, но тогда не ясно как выводить ник юзера оставившего коммент
-            //Второй вариант - создать атрибут с комментами, и выводить его, тогда проблема отпадет
+
             model.addAttribute("comments",commentsShortDtoList);
-            //Теперь надо сходить в фильм пейдж, и вывести в цикле атрибут комментс
+
         }
 
-        //Занимаюсь рейтингом
+
 
         FilmModel filmModelForId1 = filmRepository.findFilmModelByName(name);
         Integer filmId1 = filmModelForId1.getFilmId();
@@ -691,25 +686,25 @@ public class UsersController {
             filmFullDto.setRating(0);
         }
 
-        model.addAttribute("film", filmFullDto); // перенес
+        model.addAttribute("film", filmFullDto);
 
-        List<Integer> ratingScale = new ArrayList<>(); //Создаю свою шкалу рейтинга
+        List<Integer> ratingScale = new ArrayList<>();
         for(int i=0; i<6; i++)
         {
-            ratingScale.add(i);//заполняю шкалу рейтинга
+            ratingScale.add(i);
         }
-        model.addAttribute("ratingScale", ratingScale);//добавляю атрибут шкалы рейтинга
+        model.addAttribute("ratingScale", ratingScale);
 
-        Integer myRating = 2;// Я добавил в параметр рейтинг модель, не знаю, смог ли я здесь его получить или нет
+        Integer myRating = 2;
         FilmModel filmModelForId = filmsService.findFilmByNameModel(name);
         Integer filmId = filmModelForId.getFilmId();
         UsersModel usersModel = usersRepository.findUsersModelByAuthentificated(1);
         Integer userId = usersModel.getUserId();
         RatingModel ratingModel = ratingRepository.findRatingModelByFilmIdAndUserId(filmId, userId);
         if(ratingModel != null){
-            RatingDto ratingDto = ratingService.giveRatingToFilm(ratingModel, myRating); //Если рейтинг уже существует, то нужно пойти и изменить оценку
+            RatingDto ratingDto = ratingService.giveRatingToFilm(ratingModel, myRating);
         }else{
-            //Если юзер еще не ставил оценку данному фильму, то надо ПОЛУЧИТЬ ОТ ФРОНТА оценку, затем установить ее
+
             RatingModel newRatingModel = new RatingModel();
             newRatingModel.setFilmId(filmId);
             newRatingModel.setUserId(userId);
@@ -726,10 +721,10 @@ public class UsersController {
         String name = filmModel.getName();
         FilmFullDto filmFullDto = filmsService.findFilmByNameDto(name);
         //Занимаюсь выводом комментов
-        List<CommentsModel> commentsModelList = commentsRepository.findCommentsModelByFilmName(name);//Тут у меня лист комментов к фильму
+        List<CommentsModel> commentsModelList = commentsRepository.findCommentsModelByFilmName(name);
         if(commentsModelList.size()==0)
         {
-            String admComment = "Комментариев к фильму пока нет, будьте первым, кто оставит комментарий"; //Если эта хуйня останется после осталвения комментариев, ее надо будет вырезать
+            String admComment = "Комментариев к фильму пока нет, будьте первым, кто оставит комментарий";
             model.addAttribute("admComment",admComment);
         }else{
             List<CommentsShortDto> commentsShortDtoList = new ArrayList<>();
@@ -738,13 +733,12 @@ public class UsersController {
                 CommentsShortDto one_shortComment = commentsMapper.toCommentsShortDto(one_comment);
                 commentsShortDtoList.add(one_shortComment);
             }
-            //На выбор два варианта - просто добавить коммент к фильмДто, но тогда не ясно как выводить ник юзера оставившего коммент
-            //Второй вариант - создать атрибут с комментами, и выводить его, тогда проблема отпадет
+
             model.addAttribute("comments",commentsShortDtoList);
-            //Теперь надо сходить в фильм пейдж, и вывести в цикле атрибут комментс
+
         }
 
-        //Занимаюсь рейтингом
+
 
         FilmModel filmModelForId1 = filmRepository.findFilmModelByName(name);
         Integer filmId1 = filmModelForId1.getFilmId();
@@ -768,25 +762,25 @@ public class UsersController {
             filmFullDto.setRating(0);
         }
 
-        model.addAttribute("film", filmFullDto); // перенес
+        model.addAttribute("film", filmFullDto);
 
-        List<Integer> ratingScale = new ArrayList<>(); //Создаю свою шкалу рейтинга
+        List<Integer> ratingScale = new ArrayList<>();
         for(int i=0; i<6; i++)
         {
-            ratingScale.add(i);//заполняю шкалу рейтинга
+            ratingScale.add(i);
         }
-        model.addAttribute("ratingScale", ratingScale);//добавляю атрибут шкалы рейтинга
+        model.addAttribute("ratingScale", ratingScale);
 
-        Integer myRating = 3;// Я добавил в параметр рейтинг модель, не знаю, смог ли я здесь его получить или нет
+        Integer myRating = 3;
         FilmModel filmModelForId = filmsService.findFilmByNameModel(name);
         Integer filmId = filmModelForId.getFilmId();
         UsersModel usersModel = usersRepository.findUsersModelByAuthentificated(1);
         Integer userId = usersModel.getUserId();
         RatingModel ratingModel = ratingRepository.findRatingModelByFilmIdAndUserId(filmId, userId);
         if(ratingModel != null){
-            RatingDto ratingDto = ratingService.giveRatingToFilm(ratingModel, myRating); //Если рейтинг уже существует, то нужно пойти и изменить оценку
+            RatingDto ratingDto = ratingService.giveRatingToFilm(ratingModel, myRating);
         }else{
-            //Если юзер еще не ставил оценку данному фильму, то надо ПОЛУЧИТЬ ОТ ФРОНТА оценку, затем установить ее
+
             RatingModel newRatingModel = new RatingModel();
             newRatingModel.setFilmId(filmId);
             newRatingModel.setUserId(userId);
@@ -799,14 +793,14 @@ public class UsersController {
         return "film_page";
     }
     @GetMapping("/filmPage/4/{name}")
-    public String getFilmByFilmNameR4(@ModelAttribute FilmModel filmModel,  Model model){// получение фильма по имени
+    public String getFilmByFilmNameR4(@ModelAttribute FilmModel filmModel,  Model model){
         String name = filmModel.getName();
         FilmFullDto filmFullDto = filmsService.findFilmByNameDto(name);
         //Занимаюсь выводом комментов
-        List<CommentsModel> commentsModelList = commentsRepository.findCommentsModelByFilmName(name);//Тут у меня лист комментов к фильму
+        List<CommentsModel> commentsModelList = commentsRepository.findCommentsModelByFilmName(name);
         if(commentsModelList.size()==0)
         {
-            String admComment = "Комментариев к фильму пока нет, будьте первым, кто оставит комментарий"; //Если эта хуйня останется после осталвения комментариев, ее надо будет вырезать
+            String admComment = "Комментариев к фильму пока нет, будьте первым, кто оставит комментарий";
             model.addAttribute("admComment",admComment);
         }else{
             List<CommentsShortDto> commentsShortDtoList = new ArrayList<>();
@@ -815,13 +809,12 @@ public class UsersController {
                 CommentsShortDto one_shortComment = commentsMapper.toCommentsShortDto(one_comment);
                 commentsShortDtoList.add(one_shortComment);
             }
-            //На выбор два варианта - просто добавить коммент к фильмДто, но тогда не ясно как выводить ник юзера оставившего коммент
-            //Второй вариант - создать атрибут с комментами, и выводить его, тогда проблема отпадет
+
             model.addAttribute("comments",commentsShortDtoList);
-            //Теперь надо сходить в фильм пейдж, и вывести в цикле атрибут комментс
+
         }
 
-        //Занимаюсь рейтингом
+
 
         FilmModel filmModelForId1 = filmRepository.findFilmModelByName(name);
         Integer filmId1 = filmModelForId1.getFilmId();
@@ -845,25 +838,25 @@ public class UsersController {
             filmFullDto.setRating(0);
         }
 
-        model.addAttribute("film", filmFullDto); // перенес
+        model.addAttribute("film", filmFullDto);
 
-        List<Integer> ratingScale = new ArrayList<>(); //Создаю свою шкалу рейтинга
+        List<Integer> ratingScale = new ArrayList<>();
         for(int i=0; i<6; i++)
         {
-            ratingScale.add(i);//заполняю шкалу рейтинга
+            ratingScale.add(i);
         }
-        model.addAttribute("ratingScale", ratingScale);//добавляю атрибут шкалы рейтинга
+        model.addAttribute("ratingScale", ratingScale);
 
-        Integer myRating = 4;// Я добавил в параметр рейтинг модель, не знаю, смог ли я здесь его получить или нет
+        Integer myRating = 4;
         FilmModel filmModelForId = filmsService.findFilmByNameModel(name);
         Integer filmId = filmModelForId.getFilmId();
         UsersModel usersModel = usersRepository.findUsersModelByAuthentificated(1);
         Integer userId = usersModel.getUserId();
         RatingModel ratingModel = ratingRepository.findRatingModelByFilmIdAndUserId(filmId, userId);
         if(ratingModel != null){
-            RatingDto ratingDto = ratingService.giveRatingToFilm(ratingModel, myRating); //Если рейтинг уже существует, то нужно пойти и изменить оценку
+            RatingDto ratingDto = ratingService.giveRatingToFilm(ratingModel, myRating);
         }else{
-            //Если юзер еще не ставил оценку данному фильму, то надо ПОЛУЧИТЬ ОТ ФРОНТА оценку, затем установить ее
+
             RatingModel newRatingModel = new RatingModel();
             newRatingModel.setFilmId(filmId);
             newRatingModel.setUserId(userId);
@@ -876,14 +869,14 @@ public class UsersController {
         return "film_page";
     }
     @GetMapping("/filmPage/5/{name}")
-    public String getFilmByFilmNameR5(@ModelAttribute FilmModel filmModel,  Model model){// получение фильма по имени
+    public String getFilmByFilmNameR5(@ModelAttribute FilmModel filmModel,  Model model){
         String name = filmModel.getName();
         FilmFullDto filmFullDto = filmsService.findFilmByNameDto(name);
         //Занимаюсь выводом комментов
-        List<CommentsModel> commentsModelList = commentsRepository.findCommentsModelByFilmName(name);//Тут у меня лист комментов к фильму
+        List<CommentsModel> commentsModelList = commentsRepository.findCommentsModelByFilmName(name);
         if(commentsModelList.size()==0)
         {
-            String admComment = "Комментариев к фильму пока нет, будьте первым, кто оставит комментарий"; //Если эта хуйня останется после осталвения комментариев, ее надо будет вырезать
+            String admComment = "Комментариев к фильму пока нет, будьте первым, кто оставит комментарий";
             model.addAttribute("admComment",admComment);
         }else{
             List<CommentsShortDto> commentsShortDtoList = new ArrayList<>();
@@ -892,13 +885,11 @@ public class UsersController {
                 CommentsShortDto one_shortComment = commentsMapper.toCommentsShortDto(one_comment);
                 commentsShortDtoList.add(one_shortComment);
             }
-            //На выбор два варианта - просто добавить коммент к фильмДто, но тогда не ясно как выводить ник юзера оставившего коммент
-            //Второй вариант - создать атрибут с комментами, и выводить его, тогда проблема отпадет
+
             model.addAttribute("comments",commentsShortDtoList);
-            //Теперь надо сходить в фильм пейдж, и вывести в цикле атрибут комментс
+
         }
 
-        //Занимаюсь рейтингом
 
         FilmModel filmModelForId1 = filmRepository.findFilmModelByName(name);
         Integer filmId1 = filmModelForId1.getFilmId();
@@ -922,25 +913,25 @@ public class UsersController {
             filmFullDto.setRating(0);
         }
 
-        model.addAttribute("film", filmFullDto); // перенес
+        model.addAttribute("film", filmFullDto);
 
-        List<Integer> ratingScale = new ArrayList<>(); //Создаю свою шкалу рейтинга
+        List<Integer> ratingScale = new ArrayList<>();
         for(int i=0; i<6; i++)
         {
-            ratingScale.add(i);//заполняю шкалу рейтинга
+            ratingScale.add(i);
         }
-        model.addAttribute("ratingScale", ratingScale);//добавляю атрибут шкалы рейтинга
+        model.addAttribute("ratingScale", ratingScale);
 
-        Integer myRating = 5;// Я добавил в параметр рейтинг модель, не знаю, смог ли я здесь его получить или нет
+        Integer myRating = 5;
         FilmModel filmModelForId = filmsService.findFilmByNameModel(name);
         Integer filmId = filmModelForId.getFilmId();
         UsersModel usersModel = usersRepository.findUsersModelByAuthentificated(1);
         Integer userId = usersModel.getUserId();
         RatingModel ratingModel = ratingRepository.findRatingModelByFilmIdAndUserId(filmId, userId);
         if(ratingModel != null){
-            RatingDto ratingDto = ratingService.giveRatingToFilm(ratingModel, myRating); //Если рейтинг уже существует, то нужно пойти и изменить оценку
+            RatingDto ratingDto = ratingService.giveRatingToFilm(ratingModel, myRating);
         }else{
-            //Если юзер еще не ставил оценку данному фильму, то надо ПОЛУЧИТЬ ОТ ФРОНТА оценку, затем установить ее
+
             RatingModel newRatingModel = new RatingModel();
             newRatingModel.setFilmId(filmId);
             newRatingModel.setUserId(userId);

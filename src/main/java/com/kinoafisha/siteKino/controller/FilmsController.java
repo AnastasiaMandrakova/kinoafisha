@@ -34,22 +34,21 @@ public class FilmsController {
 
 
 
-    //Поставить рейтинг и добавить фильм в рекомендации профиля
 
 
     @GetMapping("/all")
-    public String getAll(Model model)// все фильмы
+    public String getAll(Model model)
     {
         List<FilmsShortDto> filmsShortDtos = filmsService.getAllFilms();
-        model.addAttribute("allFilms", filmsShortDtos);  //надо как-то запихать в шаблон фильмы. КАК ЖИ ЕНТО СДЕЛАТЬ?
+        model.addAttribute("allFilms", filmsShortDtos);
         return "all_films";
     }
 
-    //пока отдаю сам комментарий, мб вместо этого надо отдавать страницу с фильмом целиком?
+
     @PostMapping("/{filmId}/addComment")
-    public String addCommentToFilm(@RequestBody String message, Model model) //добавление коментария к фильму
+    public String addCommentToFilm(@RequestBody String message, Model model)
     {
-        CommentsModel commentsModel = filmsService.addNewComment(message);//Допустим есть сервис, который добавит коммент к фильму
+        CommentsModel commentsModel = filmsService.addNewComment(message);
         model.addAttribute("comment", commentsModel);
         return "film_page";
 
@@ -57,16 +56,16 @@ public class FilmsController {
 
 
 
-    //Все ниже методы переделать так, чтобы отправлять строку, а там из таймлива объект
+
     @GetMapping("/{filmId}")
-    public FilmFullDto getFilmByFilmId(@PathVariable Integer filmId){ // получение фильма по айди
+    public FilmFullDto getFilmByFilmId(@PathVariable Integer filmId){
 
         return filmsService.findFilmById(filmId);
 
     }
 
     @GetMapping("/filmPage/{name}")
-    public FilmFullDto getFilmByFilmName(@PathVariable String name){// получение фильма по имени
+    public FilmFullDto getFilmByFilmName(@PathVariable String name){
         return filmsService.findFilmByNameDto(name);
 
     }

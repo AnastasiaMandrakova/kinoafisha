@@ -44,5 +44,5 @@ public class FilmModel {
     @JoinColumn(name = "filmId", referencedColumnName = "filmId")
     List<CommentsModel> comments;
 
-    // СБРНИКОВ ПОКА НЕТУ
+
 }

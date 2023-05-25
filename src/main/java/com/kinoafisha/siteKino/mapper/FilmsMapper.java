@@ -30,13 +30,13 @@ public class FilmsMapper {
         }
         FilmFullDto filmFullDto = modelMapper.map(filmModel, FilmFullDto.class);
 
-//Нужно ли тут сделать filmFullDto.setCommentsShortDtos(commentsShortDtoList), или они итак добавились?
+
 
         return Objects.isNull(filmModel) ? null : filmFullDto;
 
     }
 
-    //Это так и будет
+
     public FilmsShortDto toFilmsShortDto(FilmModel filmModel) {
         return Objects.isNull(filmModel) ? null :
                 modelMapper.map(filmModel, FilmsShortDto.class);

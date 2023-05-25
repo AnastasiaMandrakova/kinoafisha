@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class UsersMapper {
 
-    //ПОКА МАПЛЮ БЕЗ СПИСКА ПОНРАВИВШИХСЯ ФИЛЬМОВ, МБ ВООБЩЕ НЕ ПОНАДОБИТСЯ ЕГО ДЕЛАТЬ, ЕСЛИ ПОНРАВИВШИЕСЯ ФИЛЬМЫ БУДУТ ОТДЕЛЬНОЙ ТАБЛИЦЕЙ
+
     private final ModelMapper modelMapper;
 
     public UserProfileDto toUserProfileDto(UsersModel usersModel)

@@ -25,7 +25,7 @@ public class FilmFullDto {
 
     String genre; // жанр
 
-    String image; //ЭКСПЕРЕМЕНТЫ
+    String image; //картинка
     @Nullable
     Integer rating; // рейтинг
 
